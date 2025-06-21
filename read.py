@@ -9,7 +9,8 @@ broker = '192.168.11.8'
 port = -1
 test_topic = "python/mqtt"
 # generate client ID with pub prefix randomly
-client_id = f'python-mqtt-{random.randint(0, 1000)}'
+client_press_id = f'python-mqtt-{random.randint(0, 1000)}'
+client_release_id = f'python-mqtt-{random.randint(0, 1000)}'
 # username = 'user'
 # password = 'pass'
 pressed = []
@@ -19,14 +20,16 @@ pygame.init()
 font = pygame.font.Font(None, 36)
 
 
-def connect_mqtt():
+def connect_mqtt(client_id):
     def on_connect(client, userdata, flags, rc, properties):
         if rc == 0:
             print("Connected to MQTT Broker!")
         else:
             print("Failed to connect, return code %d\n", rc)
 
-    client = mqtt_client.Client(client_id=client_id, callback_api_version=mqtt_client.CallbackAPIVersion.VERSION2)
+    client = mqtt_client.Client(
+        client_id=client_id,
+        callback_api_version=mqtt_client.CallbackAPIVersion.VERSION2)
     # client.username_pw_set(username, password)
     client.on_connect = on_connect
     client.connect(broker, port)
@@ -63,7 +66,7 @@ def flip_pygame(screen):
     pygame.display.flip()
 
 
-def create_screen():
+def create_screen(client_press, client_release):
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Pressed Keys Display")
 
@@ -74,8 +77,8 @@ def create_screen():
     def release(msg):
         pressed.discard(msg)
         flip_pygame(screen)
-    subscribe(client, "test/pressed", func=press)
-    subscribe(client, "test/released", func=release)
+    subscribe(client_press, "test/pressed", func=press)
+    subscribe(client_release, "test/released", func=release)
 
     running = True
     while running:
@@ -86,7 +89,9 @@ def create_screen():
 
 
 if __name__ == '__main__':
-    client = connect_mqtt()
-    client.loop_start()
+    client_press = connect_mqtt(client_press_id)
+    client_release = connect_mqtt(client_release_id)
+    client_press.loop_start()
+    client_release.loop_start()
     # subscribe_test(client)
-    create_screen()
+    create_screen(client_press, client_release)
