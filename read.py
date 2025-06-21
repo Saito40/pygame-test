@@ -13,7 +13,7 @@ client_press_id = f'python-mqtt-{random.randint(0, 1000)}'
 client_release_id = f'python-mqtt-{random.randint(0, 1000)}'
 # username = 'user'
 # password = 'pass'
-pressed = []
+pressed = set()
 WIDTH, HEIGHT = 640, 480
 # 初期化
 pygame.init()
@@ -38,8 +38,9 @@ def connect_mqtt(client_id):
 
 def subscribe(client: mqtt_client, topic, func) -> None:
     def on_message(client, userdata, msg):
-        print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
-        func(msg)
+        decoded = msg.payload.decode()
+        print(f"Received `{decoded}` from `{msg.topic}` topic")
+        func(decoded)
 
     client.subscribe(topic)
     client.on_message = on_message
@@ -71,14 +72,19 @@ def create_screen(client_press, client_release):
     pygame.display.set_caption("Pressed Keys Display")
 
     def press(msg):
+        print("press", pressed, msg)
         pressed.add(msg)
         flip_pygame(screen)
+        print("press", pressed, msg)
 
     def release(msg):
+        print("release", pressed, msg)
         pressed.discard(msg)
         flip_pygame(screen)
+        print("release", pressed, msg)
     subscribe(client_press, "test/pressed", func=press)
     subscribe(client_release, "test/released", func=release)
+    flip_pygame(screen)
 
     running = True
     while running:
