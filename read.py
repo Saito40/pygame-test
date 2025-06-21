@@ -14,6 +14,8 @@ client_id = f'python-mqtt-{random.randint(0, 1000)}'
 # password = 'pass'
 pressed = []
 WIDTH, HEIGHT = 640, 480
+# 初期化
+pygame.init()
 font = pygame.font.Font(None, 36)
 
 
@@ -62,8 +64,6 @@ def flip_pygame(screen):
 
 
 def create_screen():
-    # 初期化
-    pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Pressed Keys Display")
 
